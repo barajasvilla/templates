@@ -1,0 +1,320 @@
+% ============================================
+% Packages
+% ============================================
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage[table,dvipsnames]{xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage[numbers]{natbib}
+\usepackage{tcolorbox}
+\usepackage{mathrsfs}
+\usepackage{newpxtext}
+\tcbuselibrary{skins}
+
+% ============================================
+% Color aliases
+% ============================================
+\colorlet{MyBlue}{Blue}
+\definecolor{SectionTitleColor}{RGB}{188,46,70}
+\definecolor{SubsectionColor}{RGB}{70,70,70}
+
+% ============================================
+% Typography and general settings
+% ============================================
+\linespread{1.10}
+\usefonttheme{serif}
+\setbeamersize{text margin left=0.5cm, text margin right=0.5cm}
+\setbeamertemplate{caption}[numbered]
+\addto\captionsenglish{\renewcommand{\tablename}{Table}}
+\setlength{\abovecaptionskip}{-0.20cm}
+\setlength{\belowcaptionskip}{0pt}
+
+% Link settings
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% List settings
+\setbeamertemplate{itemize item}{\raisebox{0ex}{\scalebox{1.2}{\(\bullet\)}}}
+\setbeamertemplate{enumerate item}{\arabic{enumi}.}
+
+% ============================================
+% Background and frame title templates
+% ============================================
+\newif\ifwmframeClean
+\setbeamertemplate{background}{%
+    \ifwmframeClean
+    \else
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[
+            anchor=north east,
+            inner sep=0pt,
+            outer sep=0pt,
+            xshift=-0.2cm,
+            yshift=-0.04cm
+        ] at (current page.north east) {%
+            \includegraphics[draft=false,height=1.38cm]{figures/Logo-red.pdf}%
+        };
+        \draw[SectionTitleColor,line width=0.5pt]
+            ([xshift=0.5cm,yshift=-1.45cm]current page.north west) --
+            ([xshift=-0.5cm,yshift=-1.45cm]current page.north east);
+        \node[
+            anchor=south west,
+            inner sep=0pt,
+            outer sep=0pt,
+            xshift=0.3cm,
+            yshift=0.3cm
+        ] at (current page.south west) {%
+            \small\textbf{\color{SectionTitleColor}\insertframenumber{}}%
+        };
+    \end{tikzpicture}%
+    \fi
+}
+
+\setbeamertemplate{frametitle}{%
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[anchor=north west,xshift=0.5cm,yshift=\WMFrameTitleYShift] at (current page.north west) {%
+            \Large\bfseries\textcolor{SectionTitleColor}{\insertframetitle}%
+        };
+    \end{tikzpicture}
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[anchor=north west,xshift=0.7cm,yshift=-0.80cm] at (current page.north west) {%
+            \large\bfseries\textcolor{SubsectionColor}{\insertframesubtitle}%
+        };
+    \end{tikzpicture}%
+}
+
+% ============================================
+% Custom frame commands
+% ============================================
+\newcommand{\MyConfig}{%
+\setlength{\parskip}{5pt}%
+\setlength{\parindent}{0cm}%
+\setlength{\topsep}{1.8pt}%
+\setlength{\partopsep}{0pt}%
+\setlength{\parsep}{0pt}%
+\setlength{\itemsep}{1.8pt}%
+\setlength{\abovedisplayskip}{9pt}%
+\setlength{\belowdisplayskip}{9pt}%
+\setlength{\abovedisplayshortskip}{6pt}%
+\setlength{\belowdisplayshortskip}{6pt}%
+}
+
+\newcommand{\Render}{%
+  \setkeys{Gin}{draft=false}%
+}
+
+\newif\ifwmframeRender
+\newcommand{\WMFrameOptions}{}
+\newcommand{\WMFrameVSpace}{\vspace{0cm}}
+\newcommand{\WMFrameAlign}{}
+\newcommand{\WMFrameTitleYShift}{-0.25cm}
+
+\ExplSyntaxOn
+\tl_new:N \l__wm_frame_options_tl
+
+\cs_new_protected:Npn \WMFramePrepareOptions #1
+  {
+    \wmframeRenderfalse
+    \wmframeCleanfalse
+    \tl_clear:N \l__wm_frame_options_tl
+    \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
+    \gdef\WMFrameAlign{}
+    \clist_map_inline:nn {#1}
+      {
+        \tl_set:Nn \l_tmpa_tl {##1}
+        \tl_trim_spaces:N \l_tmpa_tl
+        \str_case:VnF \l_tmpa_tl
+          {
+            {render}
+              {
+                \wmframeRendertrue
+              }
+            {clean}
+              {
+                \wmframeCleantrue
+              }
+            {t}
+              {
+                \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
+                \tl_if_empty:NTF \l__wm_frame_options_tl
+                  {\tl_put_right:Nn \l__wm_frame_options_tl {t}}
+                  {\tl_put_right:Nn \l__wm_frame_options_tl {,t}}
+              }
+            {T}
+              {
+                \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
+                \tl_if_empty:NTF \l__wm_frame_options_tl
+                  {\tl_put_right:Nn \l__wm_frame_options_tl {t}}
+                  {\tl_put_right:Nn \l__wm_frame_options_tl {,t}}
+              }
+            {c}
+              {
+                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
+                \gdef\WMFrameAlign{}
+              }
+            {C}
+              {
+                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
+                \gdef\WMFrameAlign{}
+              }
+            {ct}
+              {
+                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
+                \gdef\WMFrameAlign{\centering}
+              }
+            {CT}
+              {
+                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
+                \gdef\WMFrameAlign{\centering}
+              }
+          }
+          {
+            \tl_if_blank:VF \l_tmpa_tl
+              {
+                \tl_if_empty:NTF \l__wm_frame_options_tl
+                  {
+                    \exp_args:NV \tl_set:Nn \l__wm_frame_options_tl \l_tmpa_tl
+                  }
+                  {
+                    \tl_put_right:Nn \l__wm_frame_options_tl {,}
+                    \tl_put_right:NV \l__wm_frame_options_tl \l_tmpa_tl
+                  }
+              }
+          }
+      }
+    \xdef\WMFrameOptions{\tl_use:N \l__wm_frame_options_tl}
+  }
+\ExplSyntaxOff
+
+\NewDocumentCommand{\Frame}{O{} +m}{%
+    \WMFramePrepareOptions{#1}
+    \begingroup
+    \ifdefempty{\subsecname}{%
+        \renewcommand{\WMFrameTitleYShift}{-0.48cm}%
+    }{%
+        \renewcommand{\WMFrameTitleYShift}{-0.25cm}%
+    }%
+    \ifwmframeRender
+        \setkeys{Gin}{draft=false}%
+    \fi
+    \ifwmframeClean
+        \setbeamertemplate{navigation symbols}{}%
+        \begin{frame}[plain]
+            \centering
+            \begin{minipage}{0.98\textwidth}
+                \MyConfig
+                #2
+            \end{minipage}%
+        \end{frame}
+    \else
+        \ifdefempty{\WMFrameOptions}{%
+            \begin{frame}{\secname}
+        }{%
+            \begin{frame}[\WMFrameOptions]{\secname}
+        }%
+            \framesubtitle{\subsecname}
+            \WMFrameVSpace
+            \centering
+            \begin{minipage}{0.98\textwidth}
+                \MyConfig
+                \WMFrameAlign#2
+            \end{minipage}%
+        \end{frame}
+    \fi
+    \endgroup
+    \wmframeCleanfalse
+}
+
+% #1: institution
+% #2: department or affiliation
+% #3: presentation title
+% #4: author
+% #5: supervisors or advisors
+% #6: date
+\NewDocumentCommand{\TitleFrame}{m m +m m +m m}{%
+    \Frame[ct]{
+        \textrm{\Large #1}\\[0.1cm]
+        \textrm{\Large #2}\\[0.25cm]
+        \begin{minipage}[c]{0.7\paperwidth}
+            \centering
+            \hrule height0.5pt
+            \vspace{0.05cm}
+            \hrule height1pt
+            \vspace{0.3cm}
+            \textbf{\large \sffamily #3}
+            \vspace{0.3cm}
+            \hrule height1pt
+            \vspace{0.05cm}
+            \hrule height0.5pt
+        \end{minipage}\\[0.25cm]
+        \text{\small By:}\\[0.1cm]
+        \text{\Large #4}\\[0.25cm]
+        \text{\small Supervised by:}\\[0.1cm]
+        \text{\Large #5}\\[0.25cm]
+        \text{#6}
+    }
+}
+
+% ============================================
+% Visual helper commands
+% ============================================
+\newcommand{\notebox}[3]{%
+    \begin{minipage}{#1\textwidth}
+        \begin{tcolorbox}[%
+            enhanced,%
+            colback=#2!10!white,%
+            frame hidden,%
+            rounded corners,%
+            borderline={0.2mm}{0mm}{black,dash pattern=on 2mm off 1mm}%
+        ]
+            \MyConfig
+            #3
+        \end{tcolorbox}
+    \end{minipage}
+}
+
+\pgfkeys{
+    /PlaceImage/.is family,
+    /PlaceImage,
+    x/.initial=0cm,
+    y/.initial=0cm,
+    width/.initial=0.5\paperwidth,
+    anchor/.initial=north west,
+    at/.initial=current page.north west
+}
+
+\NewDocumentCommand{\PlaceImage}{O{} m}{%
+    \pgfkeys{/PlaceImage, #1}%
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[
+            anchor=\pgfkeysvalueof{/PlaceImage/anchor},
+            inner sep=0pt,
+            outer sep=0pt,
+            xshift=\pgfkeysvalueof{/PlaceImage/x},
+            yshift=-\pgfkeysvalueof{/PlaceImage/y}
+        ] at (\pgfkeysvalueof{/PlaceImage/at}) {%
+            \ifwmframeRender
+                \includegraphics[draft=false,width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+            \else
+                \includegraphics[width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+            \fi
+        };
+    \end{tikzpicture}%
+}
+
+\newcommand{\posicion}[3]{%
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[anchor=north east,xshift=-#1,yshift=-#2] at (current page.north east) {%
+            #3
+        };
+    \end{tikzpicture}
+}
