@@ -285,20 +285,25 @@
 \NewDocumentCommand{\TitleFrame}{}{%
     \Frame[clean,ct]{
         \begin{tikzpicture}[remember picture,overlay]
-            \node[anchor=north] at ([yshift=-0.1cm]current page.north) {\includegraphics[draft=false,height=1.9cm,trim=31bp 57bp 31bp 56bp,clip]{figures/Logo.pdf}};
+            \node[anchor=north,inner sep=0pt] at ([yshift=-0.5cm]current page.north) {\includegraphics[draft=false,height=1.9cm,trim=31bp 57bp 31bp 56bp,clip]{figures/Logo.pdf}};
             \node[anchor=south west,inner sep=0pt] at ([xshift=0.5cm,yshift=0.4cm]current page.south west) {%
                 \begin{minipage}{0.9\paperwidth}
                     \raggedright\footnotesize \wmTitleAffiliations
                 \end{minipage}
             };
-        \end{tikzpicture}\par\vspace{0cm}
+            \node[anchor=north,inner sep=0pt] at ([yshift=-3.15cm]current page.north) {%
+                \begin{minipage}{0.98\textwidth}
+                \centering
         \begin{minipage}[c]{0.75\paperwidth}
             \centering
             \textbf{\huge \sffamily \inserttitle}
-        \end{minipage}\\[0.25cm]
-        {By:}\\[0.1cm]
-        {\large \insertauthor}\\[0.25cm]
+        \end{minipage}\\[0.5cm]
+        {By:}\\[0.18cm]
+        {\large \insertauthor}\\[0.55cm]
         \insertdate
+                \end{minipage}
+            };
+        \end{tikzpicture}
     }
 }
 
