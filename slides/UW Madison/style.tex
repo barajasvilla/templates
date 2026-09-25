@@ -212,7 +212,7 @@
             \centering
             \begin{minipage}{0.98\textwidth}
                 \MyConfig
-                #2
+                \WMFrameAlign#2
             \end{minipage}%
         \end{frame}
     \else
@@ -234,33 +234,71 @@
     \wmframeCleanfalse
 }
 
-% #1: institution
-% #2: department or affiliation
-% #3: presentation title
-% #4: author
-% #5: supervisors or advisors
-% #6: date
-\NewDocumentCommand{\TitleFrame}{m m +m m +m m}{%
-    \Frame[ct]{
-        \textrm{\Large #1}\\[0.1cm]
-        \textrm{\Large #2}\\[0.25cm]
-        \begin{minipage}[c]{0.7\paperwidth}
+% Repeated author declarations retain their order and affiliation labels.
+\ExplSyntaxOn
+\seq_new:N \g_wm_title_authors_seq
+\seq_new:N \g_wm_title_affiliations_seq
+\cs_set_protected:Npn \insertauthor {\wm_title_authors:}
+
+\cs_new:Npn \wm_title_authors:
+  {
+    \seq_map_indexed_inline:Nn \g_wm_title_authors_seq
+      {
+        \int_compare:nNnT {##1} > {1}
+          {
+            \int_compare:nNnTF {##1} = {\seq_count:N \g_wm_title_authors_seq}
+              {
+                \int_compare:nNnTF {\seq_count:N \g_wm_title_authors_seq} = {2}
+                  {~and~}
+                  {,~and~}
+              }
+              {,~}
+          }
+        ##2
+      }
+  }
+
+\cs_new:Npn \wm_title_affiliations:
+  {
+    \seq_map_indexed_inline:Nn \g_wm_title_affiliations_seq
+      {
+        \int_compare:nNnT {##1} > {1} {\\}
+        ##2
+      }
+  }
+
+\RenewDocumentCommand{\author}{O{}m}
+  {
+    \seq_gput_right:Nn \g_wm_title_authors_seq
+      {#2\tl_if_blank:nF {#1} {\textsuperscript{#1}}}
+  }
+
+\NewDocumentCommand{\affiliation}{O{}m}
+  {
+    \seq_gput_right:Nn \g_wm_title_affiliations_seq
+      {\tl_if_blank:nF {#1} {\textsuperscript{#1}\,}#2}
+  }
+
+\NewDocumentCommand{\wmTitleAffiliations}{} {\wm_title_affiliations:}
+\ExplSyntaxOff
+
+\NewDocumentCommand{\TitleFrame}{}{%
+    \Frame[clean,ct]{
+        \begin{tikzpicture}[remember picture,overlay]
+            \node[anchor=north] at ([yshift=-0.1cm]current page.north) {\includegraphics[draft=false,height=1.9cm,trim=31bp 57bp 31bp 56bp,clip]{figures/Logo.pdf}};
+            \node[anchor=south west,inner sep=0pt] at ([xshift=0.5cm,yshift=0.4cm]current page.south west) {%
+                \begin{minipage}{0.9\paperwidth}
+                    \raggedright\footnotesize \wmTitleAffiliations
+                \end{minipage}
+            };
+        \end{tikzpicture}\par\vspace{0cm}
+        \begin{minipage}[c]{0.75\paperwidth}
             \centering
-            \hrule height0.5pt
-            \vspace{0.05cm}
-            \hrule height1pt
-            \vspace{0.3cm}
-            \textbf{\large \sffamily #3}
-            \vspace{0.3cm}
-            \hrule height1pt
-            \vspace{0.05cm}
-            \hrule height0.5pt
+            \textbf{\huge \sffamily \inserttitle}
         \end{minipage}\\[0.25cm]
-        \text{\small By:}\\[0.1cm]
-        \text{\Large #4}\\[0.25cm]
-        \text{\small Supervised by:}\\[0.1cm]
-        \text{\Large #5}\\[0.25cm]
-        \text{#6}
+        {By:}\\[0.1cm]
+        {\large \insertauthor}\\[0.25cm]
+        \insertdate
     }
 }
 
