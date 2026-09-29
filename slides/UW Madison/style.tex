@@ -43,7 +43,7 @@
 }
 
 % List settings
-\setbeamertemplate{itemize item}{\raisebox{0ex}{\scalebox{1.2}{\(\bullet\)}}}
+\setbeamertemplate{itemize item}{\raisebox{0ex}{\scalebox{1.2}{\textcolor{black}{\(\circ\)}}}}
 \setbeamertemplate{enumerate item}{\arabic{enumi}.}
 
 % ============================================
@@ -331,12 +331,14 @@
     x/.initial=0cm,
     y/.initial=0cm,
     width/.initial=0.5\paperwidth,
+    height/.initial=,
     anchor/.initial=north west,
     at/.initial=current page.north west
 }
 
 \NewDocumentCommand{\PlaceImage}{O{} m}{%
-    \pgfkeys{/PlaceImage, #1}%
+    \pgfkeys{/PlaceImage/.cd,#1}%
+    \edef\WMPlaceImageHeight{\pgfkeysvalueof{/PlaceImage/height}}%
     \begin{tikzpicture}[remember picture,overlay]
         \node[
             anchor=\pgfkeysvalueof{/PlaceImage/anchor},
@@ -346,10 +348,46 @@
             yshift=-\pgfkeysvalueof{/PlaceImage/y}
         ] at (\pgfkeysvalueof{/PlaceImage/at}) {%
             \ifwmframeRender
-                \includegraphics[draft=false,width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+                \ifdefempty{\WMPlaceImageHeight}{%
+                    \includegraphics[draft=false,width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+                }{%
+                    \includegraphics[draft=false,height=\WMPlaceImageHeight]{#2}%
+                }%
             \else
-                \includegraphics[width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+                \ifdefempty{\WMPlaceImageHeight}{%
+                    \includegraphics[width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+                }{%
+                    \includegraphics[height=\WMPlaceImageHeight]{#2}%
+                }%
             \fi
+        };
+    \end{tikzpicture}%
+}
+
+\pgfkeys{
+    /PlaceText/.is family,
+    /PlaceText,
+    x/.initial=0cm,
+    y/.initial=0cm,
+    width/.initial=0.4\paperwidth
+}
+
+\NewDocumentCommand{\PlaceText}{O{} +m}{%
+    \pgfkeys{/PlaceText/.cd,#1}%
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[
+            anchor=north west,
+            inner sep=0pt,
+            outer sep=0pt,
+            xshift=\pgfkeysvalueof{/PlaceText/x},
+            yshift=-\pgfkeysvalueof{/PlaceText/y}
+        ] at (current page.north west) {%
+            \begin{minipage}[t]{\pgfkeysvalueof{/PlaceText/width}}
+                \vspace{0pt}%
+                \MyConfig
+                \raggedright
+                #2
+            \end{minipage}%
         };
     \end{tikzpicture}%
 }
