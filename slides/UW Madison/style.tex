@@ -46,6 +46,11 @@
 \setbeamertemplate{itemize item}{\raisebox{0ex}{\scalebox{1.2}{\textcolor{black}{\(\circ\)}}}}
 \setbeamertemplate{enumerate item}{\arabic{enumi}.}
 
+% A new section starts without inheriting the previous subsection title.
+\makeatletter
+\pretocmd{\beamer@section}{\gdef\subsecname{}}{}{}
+\makeatother
+
 % ============================================
 % Background and frame title templates
 % ============================================
@@ -121,6 +126,7 @@
 
 \ExplSyntaxOn
 \tl_new:N \l__wm_frame_options_tl
+\bool_new:N \l__wm_frame_vertical_set_bool
 
 \cs_new_protected:Npn \WMFramePrepareOptions #1
   {
@@ -128,6 +134,7 @@
     \wmframeGridfalse
     \wmframeCleanfalse
     \tl_clear:N \l__wm_frame_options_tl
+    \bool_set_false:N \l__wm_frame_vertical_set_bool
     \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
     \gdef\WMFrameAlign{}
     \clist_map_inline:nn {#1}
@@ -150,6 +157,7 @@
               }
             {t}
               {
+                \bool_set_true:N \l__wm_frame_vertical_set_bool
                 \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
                 \tl_if_empty:NTF \l__wm_frame_options_tl
                   {\tl_put_right:Nn \l__wm_frame_options_tl {t}}
@@ -157,6 +165,7 @@
               }
             {T}
               {
+                \bool_set_true:N \l__wm_frame_vertical_set_bool
                 \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
                 \tl_if_empty:NTF \l__wm_frame_options_tl
                   {\tl_put_right:Nn \l__wm_frame_options_tl {t}}
@@ -164,21 +173,25 @@
               }
             {c}
               {
+                \bool_set_true:N \l__wm_frame_vertical_set_bool
                 \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
                 \gdef\WMFrameAlign{}
               }
             {C}
               {
+                \bool_set_true:N \l__wm_frame_vertical_set_bool
                 \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
                 \gdef\WMFrameAlign{}
               }
             {ct}
               {
+                \bool_set_true:N \l__wm_frame_vertical_set_bool
                 \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
                 \gdef\WMFrameAlign{\centering}
               }
             {CT}
               {
+                \bool_set_true:N \l__wm_frame_vertical_set_bool
                 \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
                 \gdef\WMFrameAlign{\centering}
               }
@@ -196,6 +209,13 @@
                   }
               }
           }
+      }
+    \bool_if:NF \l__wm_frame_vertical_set_bool
+      {
+        \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
+        \tl_if_empty:NTF \l__wm_frame_options_tl
+          {\tl_set:Nn \l__wm_frame_options_tl {t}}
+          {\tl_put_right:Nn \l__wm_frame_options_tl {,t}}
       }
     \xdef\WMFrameOptions{\tl_use:N \l__wm_frame_options_tl}
   }
@@ -274,7 +294,7 @@
     \fi
 }
 
-\NewDocumentCommand{\Frame}{O{} +m}{%
+\NewDocumentCommand{\Slide}{O{} +m}{%
     \WMFramePrepareOptions{#1}
     \begingroup
     \ifdefempty{\subsecname}{%
@@ -315,6 +335,9 @@
     \wmframeCleanfalse
     \wmframeGridfalse
 }
+
+% Backward-compatible alias for existing presentations.
+\let\Frame\Slide
 
 % Repeated author declarations retain their order and affiliation labels.
 \ExplSyntaxOn
@@ -364,8 +387,8 @@
 \NewDocumentCommand{\wmTitleAffiliations}{} {\wm_title_affiliations:}
 \ExplSyntaxOff
 
-\NewDocumentCommand{\TitleFrame}{}{%
-    \Frame[clean,ct]{
+\NewDocumentCommand{\TitleSlide}{}{%
+    \Slide[clean,ct]{
         \begin{tikzpicture}[remember picture,overlay]
             \node[anchor=north,inner sep=0pt] at ([yshift=-0.5cm]current page.north) {\includegraphics[draft=false,height=1.9cm,trim=31bp 57bp 31bp 56bp,clip]{figures/Logo-red.pdf}};
             \node[anchor=south west,inner sep=0pt] at ([xshift=0.5cm,yshift=0.4cm]current page.south west) {%
@@ -388,6 +411,9 @@
         \end{tikzpicture}
     }
 }
+
+% Backward-compatible alias for existing presentations.
+\let\TitleFrame\TitleSlide
 
 % ============================================
 % Visual helper commands
