@@ -113,6 +113,7 @@
 }
 
 \newif\ifwmframeRender
+\newif\ifwmframeGrid
 \newcommand{\WMFrameOptions}{}
 \newcommand{\WMFrameVSpace}{\vspace{0cm}}
 \newcommand{\WMFrameAlign}{}
@@ -124,6 +125,7 @@
 \cs_new_protected:Npn \WMFramePrepareOptions #1
   {
     \wmframeRenderfalse
+    \wmframeGridfalse
     \wmframeCleanfalse
     \tl_clear:N \l__wm_frame_options_tl
     \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
@@ -137,6 +139,10 @@
             {render}
               {
                 \wmframeRendertrue
+              }
+            {grid}
+              {
+                \wmframeGridtrue
               }
             {clean}
               {
@@ -195,6 +201,79 @@
   }
 \ExplSyntaxOff
 
+\newcommand{\WMDrawGrid}{%
+    \ifwmframeGrid
+        \begin{tikzpicture}[remember picture,overlay]
+            \begin{scope}[shift={(current page.south west)}]
+                \draw[step=0.5cm,black!12,line width=0.1pt]
+                    (0,0) grid (\paperwidth,\paperheight);
+                \draw[step=1cm,black!38,line width=0.2pt]
+                    (0,0) grid (\paperwidth,\paperheight);
+            \end{scope}
+            \draw[SectionTitleColor!70,dashed,line width=0.4pt]
+                (current page.south) -- (current page.north);
+            \draw[SectionTitleColor!70,dashed,line width=0.4pt]
+                (current page.west) -- (current page.east);
+            \draw[black!55,line width=0.35pt]
+                (current page.south west) -- (current page.south east);
+            \draw[black!55,line width=0.35pt]
+                (current page.south west) -- (current page.north west);
+
+            \pgfmathtruncatemacro{\WMGridLastX}{\paperwidth/1cm-1}
+            \pgfmathtruncatemacro{\WMGridLastY}{\paperheight/1cm-1}
+            \foreach \x in {1,...,\WMGridLastX}{%
+                \node[
+                    anchor=south,
+                    inner sep=0.5pt,
+                    fill=white,
+                    fill opacity=0.75,
+                    text opacity=1,
+                    font=\fontsize{5}{5}\selectfont,
+                    text=black!85
+                ] at ([xshift=\x cm,yshift=0.05cm]current page.south west) {\x};
+                \node[
+                    anchor=north,
+                    inner sep=0.5pt,
+                    fill=white,
+                    fill opacity=0.75,
+                    text opacity=1,
+                    font=\fontsize{5}{5}\selectfont,
+                    text=black!85
+                ] at ([xshift=\x cm,yshift=-0.05cm]current page.north west) {\x};
+            }
+            \foreach \y in {1,...,\WMGridLastY}{%
+                \node[
+                    anchor=west,
+                    inner sep=0.5pt,
+                    fill=white,
+                    fill opacity=0.75,
+                    text opacity=1,
+                    font=\fontsize{5}{5}\selectfont,
+                    text=black!85
+                ] at ([xshift=0.05cm,yshift=\y cm]current page.south west) {\y};
+                \node[
+                    anchor=east,
+                    inner sep=0.5pt,
+                    fill=white,
+                    fill opacity=0.75,
+                    text opacity=1,
+                    font=\fontsize{5}{5}\selectfont,
+                    text=black!85
+                ] at ([xshift=-0.05cm,yshift=\y cm]current page.south east) {\y};
+            }
+            \node[
+                anchor=south west,
+                inner sep=0.5pt,
+                fill=white,
+                fill opacity=0.75,
+                text opacity=1,
+                font=\fontsize{5}{5}\selectfont,
+                text=black!85
+            ] at ([xshift=0.05cm,yshift=0.05cm]current page.south west) {0};
+        \end{tikzpicture}%
+    \fi
+}
+
 \NewDocumentCommand{\Frame}{O{} +m}{%
     \WMFramePrepareOptions{#1}
     \begingroup
@@ -214,6 +293,7 @@
                 \MyConfig
                 \WMFrameAlign#2
             \end{minipage}%
+            \WMDrawGrid
         \end{frame}
     \else
         \ifdefempty{\WMFrameOptions}{%
@@ -228,10 +308,12 @@
                 \MyConfig
                 \WMFrameAlign#2
             \end{minipage}%
+            \WMDrawGrid
         \end{frame}
     \fi
     \endgroup
     \wmframeCleanfalse
+    \wmframeGridfalse
 }
 
 % Repeated author declarations retain their order and affiliation labels.
@@ -332,20 +414,41 @@
     y/.initial=0cm,
     width/.initial=0.5\paperwidth,
     height/.initial=,
-    anchor/.initial=north west,
-    at/.initial=current page.north west
+    anchor/.initial=center,
+    r/.is choice,
+    r/cc/.style={anchor=center},
+    r/lc/.style={anchor=west},
+    r/rc/.style={anchor=east},
+    r/cb/.style={anchor=south},
+    r/ct/.style={anchor=north},
+    r/lb/.style={anchor=south west},
+    r/lt/.style={anchor=north west},
+    r/rb/.style={anchor=south east},
+    r/rt/.style={anchor=north east},
+    at/.initial=current page.south west
 }
 
 \NewDocumentCommand{\PlaceImage}{O{} m}{%
     \pgfkeys{/PlaceImage/.cd,#1}%
     \edef\WMPlaceImageHeight{\pgfkeysvalueof{/PlaceImage/height}}%
+    \edef\WMPlaceImageX{\pgfkeysvalueof{/PlaceImage/x}}%
+    \edef\WMPlaceImageY{\pgfkeysvalueof{/PlaceImage/y}}%
+    \ifdefstring{\WMPlaceImageX}{c}{\def\WMPlaceImageX{0.5\paperwidth}}{}%
+    \ifdefstring{\WMPlaceImageY}{c}{\def\WMPlaceImageY{0.5\paperheight}}{}%
+    \ifwmframeGrid
+        \tikzset{wm place image debug/.style={draw=red!75!black,dashed,line width=0.8pt}}%
+    \else
+        \tikzset{wm place image debug/.style={}}%
+    \fi
     \begin{tikzpicture}[remember picture,overlay]
         \node[
+            name=wmplaceimagebox,
+            wm place image debug,
             anchor=\pgfkeysvalueof{/PlaceImage/anchor},
             inner sep=0pt,
             outer sep=0pt,
-            xshift=\pgfkeysvalueof{/PlaceImage/x},
-            yshift=-\pgfkeysvalueof{/PlaceImage/y}
+            xshift=\WMPlaceImageX,
+            yshift=\WMPlaceImageY
         ] at (\pgfkeysvalueof{/PlaceImage/at}) {%
             \ifwmframeRender
                 \ifdefempty{\WMPlaceImageHeight}{%
@@ -361,6 +464,16 @@
                 }%
             \fi
         };
+        \ifwmframeGrid
+            \draw[red!75!black,line width=1.2pt]
+                ([yshift=-3pt]wmplaceimagebox.north) -- ([yshift=3pt]wmplaceimagebox.north)
+                ([yshift=-3pt]wmplaceimagebox.south) -- ([yshift=3pt]wmplaceimagebox.south)
+                ([xshift=-3pt]wmplaceimagebox.west) -- ([xshift=3pt]wmplaceimagebox.west)
+                ([xshift=-3pt]wmplaceimagebox.east) -- ([xshift=3pt]wmplaceimagebox.east);
+            \fill[red!75!black]
+                ([xshift=\WMPlaceImageX,yshift=\WMPlaceImageY]\pgfkeysvalueof{/PlaceImage/at})
+                circle[radius=2pt];
+        \fi
     \end{tikzpicture}%
 }
 
@@ -369,19 +482,42 @@
     /PlaceText,
     x/.initial=0cm,
     y/.initial=0cm,
-    width/.initial=0.4\paperwidth
+    width/.initial=0.4\paperwidth,
+    anchor/.initial=center,
+    r/.is choice,
+    r/cc/.style={anchor=center},
+    r/lc/.style={anchor=west},
+    r/rc/.style={anchor=east},
+    r/cb/.style={anchor=south},
+    r/ct/.style={anchor=north},
+    r/lb/.style={anchor=south west},
+    r/lt/.style={anchor=north west},
+    r/rb/.style={anchor=south east},
+    r/rt/.style={anchor=north east},
+    at/.initial=current page.south west
 }
 
 \NewDocumentCommand{\PlaceText}{O{} +m}{%
     \pgfkeys{/PlaceText/.cd,#1}%
+    \edef\WMPlaceTextX{\pgfkeysvalueof{/PlaceText/x}}%
+    \edef\WMPlaceTextY{\pgfkeysvalueof{/PlaceText/y}}%
+    \ifdefstring{\WMPlaceTextX}{c}{\def\WMPlaceTextX{0.5\paperwidth}}{}%
+    \ifdefstring{\WMPlaceTextY}{c}{\def\WMPlaceTextY{0.5\paperheight}}{}%
+    \ifwmframeGrid
+        \tikzset{wm place text debug/.style={draw=blue!75!black,dashed,line width=0.8pt}}%
+    \else
+        \tikzset{wm place text debug/.style={}}%
+    \fi
     \begin{tikzpicture}[remember picture,overlay]
         \node[
-            anchor=north west,
+            name=wmplacetextbox,
+            wm place text debug,
+            anchor=\pgfkeysvalueof{/PlaceText/anchor},
             inner sep=0pt,
             outer sep=0pt,
-            xshift=\pgfkeysvalueof{/PlaceText/x},
-            yshift=-\pgfkeysvalueof{/PlaceText/y}
-        ] at (current page.north west) {%
+            xshift=\WMPlaceTextX,
+            yshift=\WMPlaceTextY
+        ] at (\pgfkeysvalueof{/PlaceText/at}) {%
             \begin{minipage}[t]{\pgfkeysvalueof{/PlaceText/width}}
                 \vspace{0pt}%
                 \MyConfig
@@ -389,6 +525,16 @@
                 #2
             \end{minipage}%
         };
+        \ifwmframeGrid
+            \draw[blue!75!black,line width=1.2pt]
+                ([yshift=-3pt]wmplacetextbox.north) -- ([yshift=3pt]wmplacetextbox.north)
+                ([yshift=-3pt]wmplacetextbox.south) -- ([yshift=3pt]wmplacetextbox.south)
+                ([xshift=-3pt]wmplacetextbox.west) -- ([xshift=3pt]wmplacetextbox.west)
+                ([xshift=-3pt]wmplacetextbox.east) -- ([xshift=3pt]wmplacetextbox.east);
+            \fill[blue!75!black]
+                ([xshift=\WMPlaceTextX,yshift=\WMPlaceTextY]\pgfkeysvalueof{/PlaceText/at})
+                circle[radius=2pt];
+        \fi
     \end{tikzpicture}%
 }
 
