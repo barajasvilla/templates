@@ -1,0 +1,90 @@
+\documentclass[11pt,twoside]{article}
+
+% Paquetes de matematicas
+\usepackage{amsmath} % entornos matematicos
+\usepackage{amssymb} % simbolos matematicos
+\usepackage{bm} % negrita matematica para vectores y simbolos
+\usepackage{mathrsfs} % letras caligraficas
+
+% Paquetes de tipografia y citas
+\usepackage{palatino} % tipografia Palatino
+\usepackage[numbers,sort&compress]{natbib} % citas y bibliografia
+\usepackage{comment}
+% Paquetes de tablas, figuras y formato visual
+\usepackage[font=small,labelfont=bf]{caption} % estilo de captions
+\usepackage{graphicx} % inclusion de figuras
+\usepackage{fewerfloatpages} % reduce paginas formadas solo por flotantes
+\usepackage{xcolor} % colores extendidos
+
+% Paquetes de maquetacion y metadatos
+\usepackage{authblk} % autores y afiliaciones
+\usepackage{geometry} % configuracion de margenes
+\usepackage{fancyhdr} % encabezados y pies
+
+% Paquetes de enlaces y URLs
+\usepackage{xurl} % URLs largas
+\usepackage[colorlinks = true, linkcolor = blue, citecolor = blue, urlcolor = blue]{hyperref} % enlaces
+
+\geometry{letterpaper,
+  left       = 0.9in,
+  right      = 0.9in,
+  top        = 1in,
+  bottom     = 1in,
+  headheight = 14pt
+}
+\linespread{1.2}
+\setlength{\tabcolsep}{12pt} % espacio horizontal entre columnas
+\pagestyle{fancy}
+
+\lhead{}
+\rhead{\url{http://zavalab.engr.wisc.edu}}
+
+\renewenvironment{abstract}{%
+  \small
+  \begin{center}%
+    {\Large\bfseries \abstractname}%
+  \end{center}%
+  \quotation
+}{%
+  \endquotation
+}
+
+% Configuracion de numeracion
+\numberwithin{equation}{section} % ecuaciones por seccion y reinicio del contador
+
+% Macros de notacion
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\mods}[1]{\left\lvert #1 \right\rvert}
+
+\begin{document}
+
+\title{\bfseries A Latent Space Approach for High-Dimensional Optimal Control}
+
+\author{
+  Luis R. Barajas-Villarruel$^\text{a}$, and Victor M. Zavala$^\text{b}$\thanks{Corresponding Author: victor.zavala@wisc.edu.}\\
+  {\small $^\text{a}$Departamento de Ingeniería Química}\\
+  {\small \;Tecnológico Nacional de México en Celaya, Celaya, Guanajuato 38010, México}\\
+  {\small $^\text{b}$Department of Chemical and Biological Engineering}\\
+  {\small \;University of Wisconsin-Madison, 1415 Engineering Dr, Madison, WI 53706, USA}
+}
+\date{}
+\maketitle
+
+\begin{abstract}
+  ...
+\end{abstract}
+
+{\bf Keywords}: ...
+
+\clearpage
+\section{Introduction}
+\citet{alanqar2015economic} ... \citet{schulze2022data}
+
+% Cuerpo principal
+\clearpage
+\pagestyle{plain}
+\thispagestyle{plain}
+\bibliographystyle{elsarticle-num-names}
+\bibliography{vzavala}
+
+\end{document}

@@ -1,0 +1,70 @@
+\documentclass[11pt,twoside]{article}
+
+% Paquetes de matematicas
+\usepackage{amsmath} % entornos matematicos
+\usepackage{amssymb} % simbolos matematicos
+\usepackage{bm} % negrita matematica para vectores y simbolos
+\usepackage{mathrsfs} % letras caligraficas
+
+% Paquetes de tipografia y citas
+\usepackage{palatino} % tipografia Palatino
+\usepackage[numbers,sort&compress]{natbib} % citas y bibliografia
+
+% Paquetes de tablas, figuras y formato visual
+\usepackage[font=small,labelfont=bf]{caption} % estilo de captions
+\usepackage{graphicx} % inclusion de figuras
+\usepackage{fewerfloatpages} % reduce paginas formadas solo por flotantes
+\usepackage{xcolor} % colores extendidos
+
+% Paquetes de maquetacion y metadatos
+\usepackage{authblk} % autores y afiliaciones
+\usepackage{geometry} % configuracion de margenes
+
+% Paquetes de enlaces y URLs
+\usepackage{xurl} % URLs largas
+\usepackage[colorlinks = true, linkcolor = blue, citecolor = blue, urlcolor = blue]{hyperref} % enlaces
+
+\geometry{letterpaper,
+  left       = 0.9in,
+  right      = 0.9in,
+  top        = 1in,
+  bottom     = 1in,
+  headheight = 14pt
+}
+\linespread{1.2}
+\setlength{\tabcolsep}{12pt} % espacio horizontal entre columnas
+
+\pagestyle{plain}
+
+% Configuracion de numeracion
+\renewcommand{\thesection}{S\arabic{section}} % numeracion de secciones suplementarias
+\renewcommand{\thesubsection}{S\arabic{section}.\arabic{subsection}} % numeracion de subsecciones suplementarias
+\renewcommand{\thefigure}{S\arabic{figure}} % numeracion de figuras suplementarias
+\setcounter{figure}{0} % reinicia figuras
+\renewcommand{\thetable}{S\arabic{table}} % numeracion de tablas suplementarias
+\setcounter{table}{0} % reinicia tablas
+\renewcommand{\theequation}{S\arabic{equation}} % numeracion de ecuaciones suplementarias
+\setcounter{equation}{0} % reinicia ecuaciones
+
+\begin{document}
+
+\title{{\bfseries Supplementary Information}\\[0.25em]
+  {\large A Latent Space Approach for High-Dimensional Optimal Control}}
+
+\author{
+  Luis R. Barajas-Villarruel$^\text{a}$, and Victor M. Zavala$^\text{b}$\thanks{Corresponding Author: victor.zavala@wisc.edu.}\\
+  {\small $^\text{a}$Departamento de Ingeniería Química}\\
+  {\small \;Tecnológico Nacional de México en Celaya, Celaya, Guanajuato 38010, México}\\
+  {\small $^\text{b}$Department of Chemical and Biological Engineering}\\
+  {\small \;University of Wisconsin-Madison, 1415 Engineering Dr, Madison, WI 53706, USA}
+}
+
+\date{}
+\maketitle
+\newpage
+
+\clearpage
+\pagestyle{plain}
+\thispagestyle{plain}
+
+\end{document}
