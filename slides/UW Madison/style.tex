@@ -3,23 +3,14 @@
 % ============================================
 \usepackage{graphicx}
 \usepackage{tikz}
-\usepackage[table,dvipsnames]{xcolor}
-\usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
-\usepackage{amsmath}
 \usepackage{mathtools}
 \usepackage{amssymb}
 \usepackage{bm}
 \usepackage[numbers]{natbib}
-\usepackage{tcolorbox}
 \usepackage{mathrsfs}
 \usepackage{newpxtext}
-\tcbuselibrary{skins}
 
-% ============================================
-% Color aliases
-% ============================================
-\colorlet{MyBlue}{Blue}
 \definecolor{SectionTitleColor}{RGB}{188,46,70}
 \definecolor{SubsectionColor}{RGB}{70,70,70}
 
@@ -89,8 +80,6 @@
         \node[anchor=north west,xshift=0.5cm,yshift=\WMFrameTitleYShift] at (current page.north west) {%
             \Large\bfseries\textcolor{SectionTitleColor}{\insertframetitle}%
         };
-    \end{tikzpicture}
-    \begin{tikzpicture}[remember picture,overlay]
         \node[anchor=north west,xshift=0.7cm,yshift=-0.80cm] at (current page.north west) {%
             \large\bfseries\textcolor{SubsectionColor}{\insertframesubtitle}%
         };
@@ -113,10 +102,6 @@
 \setlength{\belowdisplayshortskip}{6pt}%
 }
 
-\newcommand{\Render}{%
-  \setkeys{Gin}{draft=false}%
-}
-
 \newif\ifwmframeRender
 \newif\ifwmframeGrid
 \newcommand{\WMFrameOptions}{}
@@ -125,99 +110,62 @@
 \newcommand{\WMFrameTitleYShift}{-0.25cm}
 
 \ExplSyntaxOn
-\tl_new:N \l__wm_frame_options_tl
-\bool_new:N \l__wm_frame_vertical_set_bool
+\clist_new:N \l__wm_frame_options_clist
+\bool_new:N \l__wm_frame_top_bool
 
 \cs_new_protected:Npn \WMFramePrepareOptions #1
   {
     \wmframeRenderfalse
     \wmframeGridfalse
     \wmframeCleanfalse
-    \tl_clear:N \l__wm_frame_options_tl
-    \bool_set_false:N \l__wm_frame_vertical_set_bool
-    \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
-    \gdef\WMFrameAlign{}
+    \clist_clear:N \l__wm_frame_options_clist
+    \bool_set_true:N \l__wm_frame_top_bool
+    \def\WMFrameVSpace{\vspace{1cm}}
+    \def\WMFrameAlign{}
     \clist_map_inline:nn {#1}
       {
         \tl_set:Nn \l_tmpa_tl {##1}
         \tl_trim_spaces:N \l_tmpa_tl
-        \str_case:VnF \l_tmpa_tl
+        \tl_set:Nx \l_tmpb_tl {\str_lowercase:f {\l_tmpa_tl}}
+        \str_case:VnF \l_tmpb_tl
           {
             {render}
-              {
-                \wmframeRendertrue
-              }
+              {\wmframeRendertrue}
+            {r}
+              {\wmframeRendertrue}
             {grid}
-              {
-                \wmframeGridtrue
-              }
+              {\wmframeGridtrue}
+            {g}
+              {\wmframeGridtrue}
             {clean}
-              {
-                \wmframeCleantrue
-              }
+              {\wmframeCleantrue}
             {t}
               {
-                \bool_set_true:N \l__wm_frame_vertical_set_bool
-                \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
-                \tl_if_empty:NTF \l__wm_frame_options_tl
-                  {\tl_put_right:Nn \l__wm_frame_options_tl {t}}
-                  {\tl_put_right:Nn \l__wm_frame_options_tl {,t}}
-              }
-            {T}
-              {
-                \bool_set_true:N \l__wm_frame_vertical_set_bool
-                \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
-                \tl_if_empty:NTF \l__wm_frame_options_tl
-                  {\tl_put_right:Nn \l__wm_frame_options_tl {t}}
-                  {\tl_put_right:Nn \l__wm_frame_options_tl {,t}}
+                \bool_set_true:N \l__wm_frame_top_bool
+                \def\WMFrameVSpace{\vspace{1cm}}
+                \def\WMFrameAlign{}
               }
             {c}
               {
-                \bool_set_true:N \l__wm_frame_vertical_set_bool
-                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
-                \gdef\WMFrameAlign{}
+                \bool_set_false:N \l__wm_frame_top_bool
+                \def\WMFrameVSpace{}
+                \def\WMFrameAlign{}
               }
-            {C}
+            {cc}
               {
-                \bool_set_true:N \l__wm_frame_vertical_set_bool
-                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
-                \gdef\WMFrameAlign{}
-              }
-            {ct}
-              {
-                \bool_set_true:N \l__wm_frame_vertical_set_bool
-                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
-                \gdef\WMFrameAlign{\centering}
-              }
-            {CT}
-              {
-                \bool_set_true:N \l__wm_frame_vertical_set_bool
-                \xdef\WMFrameVSpace{\noexpand\vspace{0cm}}
-                \gdef\WMFrameAlign{\centering}
+                \bool_set_false:N \l__wm_frame_top_bool
+                \def\WMFrameVSpace{}
+                \def\WMFrameAlign{\centering}
               }
           }
           {
             \tl_if_blank:VF \l_tmpa_tl
-              {
-                \tl_if_empty:NTF \l__wm_frame_options_tl
-                  {
-                    \exp_args:NV \tl_set:Nn \l__wm_frame_options_tl \l_tmpa_tl
-                  }
-                  {
-                    \tl_put_right:Nn \l__wm_frame_options_tl {,}
-                    \tl_put_right:NV \l__wm_frame_options_tl \l_tmpa_tl
-                  }
-              }
+              {\clist_put_right:NV \l__wm_frame_options_clist \l_tmpa_tl}
           }
       }
-    \bool_if:NF \l__wm_frame_vertical_set_bool
-      {
-        \xdef\WMFrameVSpace{\noexpand\vspace{1cm}}
-        \tl_if_empty:NTF \l__wm_frame_options_tl
-          {\tl_set:Nn \l__wm_frame_options_tl {t}}
-          {\tl_put_right:Nn \l__wm_frame_options_tl {,t}}
-      }
-    \xdef\WMFrameOptions{\tl_use:N \l__wm_frame_options_tl}
+    \bool_if:NT \l__wm_frame_top_bool
+      {\clist_put_right:Nn \l__wm_frame_options_clist {t}}
+    \edef\WMFrameOptions{\clist_use:Nn \l__wm_frame_options_clist {,}}
   }
 \ExplSyntaxOff
 
@@ -295,8 +243,8 @@
 }
 
 \NewDocumentCommand{\Slide}{O{} +m}{%
-    \WMFramePrepareOptions{#1}
     \begingroup
+    \WMFramePrepareOptions{#1}
     \ifdefempty{\subsecname}{%
         \renewcommand{\WMFrameTitleYShift}{-0.48cm}%
     }{%
@@ -307,7 +255,11 @@
     \fi
     \ifwmframeClean
         \setbeamertemplate{navigation symbols}{}%
-        \begin{frame}[plain]
+        \ifdefempty{\WMFrameOptions}{%
+            \begin{frame}[plain]
+        }{%
+            \begin{frame}[plain,\WMFrameOptions]
+        }%
             \centering
             \begin{minipage}{0.98\textwidth}
                 \MyConfig
@@ -332,12 +284,7 @@
         \end{frame}
     \fi
     \endgroup
-    \wmframeCleanfalse
-    \wmframeGridfalse
 }
-
-% Backward-compatible alias for existing presentations.
-\let\Frame\Slide
 
 % Repeated author declarations retain their order and affiliation labels.
 \ExplSyntaxOn
@@ -388,7 +335,7 @@
 \ExplSyntaxOff
 
 \NewDocumentCommand{\TitleSlide}{}{%
-    \Slide[clean,ct]{
+    \Slide[clean,cc]{
         \begin{tikzpicture}[remember picture,overlay]
             \node[anchor=north,inner sep=0pt] at ([yshift=-0.5cm]current page.north) {\includegraphics[draft=false,height=1.9cm,trim=31bp 57bp 31bp 56bp,clip]{figures/Logo-red.pdf}};
             \node[anchor=south west,inner sep=0pt] at ([xshift=0.5cm,yshift=0.4cm]current page.south west) {%
@@ -412,35 +359,43 @@
     }
 }
 
-% Backward-compatible alias for existing presentations.
-\let\TitleFrame\TitleSlide
-
 % ============================================
 % Visual helper commands
 % ============================================
-\newcommand{\notebox}[3]{%
-    \begin{minipage}{#1\textwidth}
-        \begin{tcolorbox}[%
-            enhanced,%
-            colback=#2!10!white,%
-            frame hidden,%
-            rounded corners,%
-            borderline={0.2mm}{0mm}{black,dash pattern=on 2mm off 1mm}%
-        ]
-            \MyConfig
-            #3
-        \end{tcolorbox}
-    \end{minipage}
-}
+% Interpret bare numeric lengths as centimetres while preserving explicit
+% units, dimension expressions, and symbolic values such as `c`.
+\ExplSyntaxOn
+\cs_new_protected:Npn \wm_normalize_length:nN #1#2
+  {
+    \tl_set:Nx \l_tmpa_tl {#1}
+    \tl_trim_spaces:N \l_tmpa_tl
+    \regex_match:nVTF
+      { \A (?: \+ | - )? (?: \d+ (?: \. \d* )? | \. \d+ ) \Z }
+      \l_tmpa_tl
+      { \tl_put_right:Nn \l_tmpa_tl { cm } }
+      { }
+    \cs_set:Npx #2 { \exp_not:V \l_tmpa_tl }
+  }
+\NewDocumentCommand{\WMNormalizeLength}{m m}
+  { \wm_normalize_length:nN {#1} #2 }
+\ExplSyntaxOff
 
 \pgfkeys{
-    /PlaceImage/.is family,
-    /PlaceImage,
+    /Image/.is family,
+    /Image,
     x/.initial=0cm,
     y/.initial=0cm,
     width/.initial=0.5\paperwidth,
     height/.initial=,
     anchor/.initial=center,
+    defaults/.style={
+        x=0cm,
+        y=0cm,
+        width=0.5\paperwidth,
+        height=,
+        anchor=center,
+        at=current page.south west
+    },
     r/.is choice,
     r/cc/.style={anchor=center},
     r/lc/.style={anchor=west},
@@ -454,62 +409,74 @@
     at/.initial=current page.south west
 }
 
-\NewDocumentCommand{\PlaceImage}{O{} m}{%
-    \pgfkeys{/PlaceImage/.cd,#1}%
-    \edef\WMPlaceImageHeight{\pgfkeysvalueof{/PlaceImage/height}}%
-    \edef\WMPlaceImageX{\pgfkeysvalueof{/PlaceImage/x}}%
-    \edef\WMPlaceImageY{\pgfkeysvalueof{/PlaceImage/y}}%
-    \ifdefstring{\WMPlaceImageX}{c}{\def\WMPlaceImageX{0.5\paperwidth}}{}%
-    \ifdefstring{\WMPlaceImageY}{c}{\def\WMPlaceImageY{0.5\paperheight}}{}%
+\NewDocumentCommand{\Image}{O{} m}{%
+    \pgfkeys{/Image/.cd,defaults,#1}%
+    \edef\WMImageHeight{\pgfkeysvalueof{/Image/height}}%
+    \edef\WMImageWidth{\pgfkeysvalueof{/Image/width}}%
+    \edef\WMImageX{\pgfkeysvalueof{/Image/x}}%
+    \edef\WMImageY{\pgfkeysvalueof{/Image/y}}%
+    \WMNormalizeLength{\WMImageHeight}{\WMImageHeight}%
+    \WMNormalizeLength{\WMImageWidth}{\WMImageWidth}%
+    \WMNormalizeLength{\WMImageX}{\WMImageX}%
+    \WMNormalizeLength{\WMImageY}{\WMImageY}%
+    \ifdefstring{\WMImageX}{c}{\def\WMImageX{0.5\paperwidth}}{}%
+    \ifdefstring{\WMImageY}{c}{\def\WMImageY{0.5\paperheight}}{}%
     \ifwmframeGrid
-        \tikzset{wm place image debug/.style={draw=red!75!black,dashed,line width=0.8pt}}%
+        \tikzset{wm image debug/.style={draw=red!75!black,dashed,line width=0.8pt}}%
     \else
-        \tikzset{wm place image debug/.style={}}%
+        \tikzset{wm image debug/.style={}}%
     \fi
     \begin{tikzpicture}[remember picture,overlay]
         \node[
-            name=wmplaceimagebox,
-            wm place image debug,
-            anchor=\pgfkeysvalueof{/PlaceImage/anchor},
+            name=wmimagebox,
+            wm image debug,
+            anchor=\pgfkeysvalueof{/Image/anchor},
             inner sep=0pt,
             outer sep=0pt,
-            xshift=\WMPlaceImageX,
-            yshift=\WMPlaceImageY
-        ] at (\pgfkeysvalueof{/PlaceImage/at}) {%
+            xshift=\WMImageX,
+            yshift=\WMImageY
+        ] at (\pgfkeysvalueof{/Image/at}) {%
             \ifwmframeRender
-                \ifdefempty{\WMPlaceImageHeight}{%
-                    \includegraphics[draft=false,width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+                \ifdefempty{\WMImageHeight}{%
+                    \includegraphics[draft=false,width=\WMImageWidth]{#2}%
                 }{%
-                    \includegraphics[draft=false,height=\WMPlaceImageHeight]{#2}%
+                    \includegraphics[draft=false,height=\WMImageHeight]{#2}%
                 }%
             \else
-                \ifdefempty{\WMPlaceImageHeight}{%
-                    \includegraphics[width=\pgfkeysvalueof{/PlaceImage/width}]{#2}%
+                \ifdefempty{\WMImageHeight}{%
+                    \includegraphics[width=\WMImageWidth]{#2}%
                 }{%
-                    \includegraphics[height=\WMPlaceImageHeight]{#2}%
+                    \includegraphics[height=\WMImageHeight]{#2}%
                 }%
             \fi
         };
         \ifwmframeGrid
             \draw[red!75!black,line width=1.2pt]
-                ([yshift=-3pt]wmplaceimagebox.north) -- ([yshift=3pt]wmplaceimagebox.north)
-                ([yshift=-3pt]wmplaceimagebox.south) -- ([yshift=3pt]wmplaceimagebox.south)
-                ([xshift=-3pt]wmplaceimagebox.west) -- ([xshift=3pt]wmplaceimagebox.west)
-                ([xshift=-3pt]wmplaceimagebox.east) -- ([xshift=3pt]wmplaceimagebox.east);
+                ([yshift=-3pt]wmimagebox.north) -- ([yshift=3pt]wmimagebox.north)
+                ([yshift=-3pt]wmimagebox.south) -- ([yshift=3pt]wmimagebox.south)
+                ([xshift=-3pt]wmimagebox.west) -- ([xshift=3pt]wmimagebox.west)
+                ([xshift=-3pt]wmimagebox.east) -- ([xshift=3pt]wmimagebox.east);
             \fill[red!75!black]
-                ([xshift=\WMPlaceImageX,yshift=\WMPlaceImageY]\pgfkeysvalueof{/PlaceImage/at})
+                ([xshift=\WMImageX,yshift=\WMImageY]\pgfkeysvalueof{/Image/at})
                 circle[radius=2pt];
         \fi
     \end{tikzpicture}%
 }
 
 \pgfkeys{
-    /PlaceText/.is family,
-    /PlaceText,
+    /Text/.is family,
+    /Text,
     x/.initial=0cm,
     y/.initial=0cm,
     width/.initial=0.4\paperwidth,
     anchor/.initial=center,
+    defaults/.style={
+        x=0cm,
+        y=0cm,
+        width=0.4\paperwidth,
+        anchor=center,
+        at=current page.south west
+    },
     r/.is choice,
     r/cc/.style={anchor=center},
     r/lc/.style={anchor=west},
@@ -523,28 +490,32 @@
     at/.initial=current page.south west
 }
 
-\NewDocumentCommand{\PlaceText}{O{} +m}{%
-    \pgfkeys{/PlaceText/.cd,#1}%
-    \edef\WMPlaceTextX{\pgfkeysvalueof{/PlaceText/x}}%
-    \edef\WMPlaceTextY{\pgfkeysvalueof{/PlaceText/y}}%
-    \ifdefstring{\WMPlaceTextX}{c}{\def\WMPlaceTextX{0.5\paperwidth}}{}%
-    \ifdefstring{\WMPlaceTextY}{c}{\def\WMPlaceTextY{0.5\paperheight}}{}%
+\NewDocumentCommand{\Text}{O{} +m}{%
+    \pgfkeys{/Text/.cd,defaults,#1}%
+    \edef\WMTextX{\pgfkeysvalueof{/Text/x}}%
+    \edef\WMTextY{\pgfkeysvalueof{/Text/y}}%
+    \edef\WMTextWidth{\pgfkeysvalueof{/Text/width}}%
+    \WMNormalizeLength{\WMTextX}{\WMTextX}%
+    \WMNormalizeLength{\WMTextY}{\WMTextY}%
+    \WMNormalizeLength{\WMTextWidth}{\WMTextWidth}%
+    \ifdefstring{\WMTextX}{c}{\def\WMTextX{0.5\paperwidth}}{}%
+    \ifdefstring{\WMTextY}{c}{\def\WMTextY{0.5\paperheight}}{}%
     \ifwmframeGrid
-        \tikzset{wm place text debug/.style={draw=blue!75!black,dashed,line width=0.8pt}}%
+        \tikzset{wm text debug/.style={draw=blue!75!black,dashed,line width=0.8pt}}%
     \else
-        \tikzset{wm place text debug/.style={}}%
+        \tikzset{wm text debug/.style={}}%
     \fi
     \begin{tikzpicture}[remember picture,overlay]
         \node[
-            name=wmplacetextbox,
-            wm place text debug,
-            anchor=\pgfkeysvalueof{/PlaceText/anchor},
+            name=wmtextbox,
+            wm text debug,
+            anchor=\pgfkeysvalueof{/Text/anchor},
             inner sep=0pt,
             outer sep=0pt,
-            xshift=\WMPlaceTextX,
-            yshift=\WMPlaceTextY
-        ] at (\pgfkeysvalueof{/PlaceText/at}) {%
-            \begin{minipage}[t]{\pgfkeysvalueof{/PlaceText/width}}
+            xshift=\WMTextX,
+            yshift=\WMTextY
+        ] at (\pgfkeysvalueof{/Text/at}) {%
+            \begin{minipage}[t]{\WMTextWidth}
                 \vspace{0pt}%
                 \MyConfig
                 \raggedright
@@ -553,21 +524,97 @@
         };
         \ifwmframeGrid
             \draw[blue!75!black,line width=1.2pt]
-                ([yshift=-3pt]wmplacetextbox.north) -- ([yshift=3pt]wmplacetextbox.north)
-                ([yshift=-3pt]wmplacetextbox.south) -- ([yshift=3pt]wmplacetextbox.south)
-                ([xshift=-3pt]wmplacetextbox.west) -- ([xshift=3pt]wmplacetextbox.west)
-                ([xshift=-3pt]wmplacetextbox.east) -- ([xshift=3pt]wmplacetextbox.east);
+                ([yshift=-3pt]wmtextbox.north) -- ([yshift=3pt]wmtextbox.north)
+                ([yshift=-3pt]wmtextbox.south) -- ([yshift=3pt]wmtextbox.south)
+                ([xshift=-3pt]wmtextbox.west) -- ([xshift=3pt]wmtextbox.west)
+                ([xshift=-3pt]wmtextbox.east) -- ([xshift=3pt]wmtextbox.east);
             \fill[blue!75!black]
-                ([xshift=\WMPlaceTextX,yshift=\WMPlaceTextY]\pgfkeysvalueof{/PlaceText/at})
+                ([xshift=\WMTextX,yshift=\WMTextY]\pgfkeysvalueof{/Text/at})
                 circle[radius=2pt];
         \fi
     \end{tikzpicture}%
 }
 
-\newcommand{\posicion}[3]{%
+\pgfkeys{
+    /Note/.is family,
+    /Note,
+    x/.initial=0cm,
+    y/.initial=0cm,
+    width/.initial=0.4\paperwidth,
+    color/.initial=SectionTitleColor,
+    anchor/.initial=center,
+    defaults/.style={
+        x=0cm,
+        y=0cm,
+        width=0.4\paperwidth,
+        color=SectionTitleColor,
+        anchor=center,
+        at=current page.south west
+    },
+    r/.is choice,
+    r/cc/.style={anchor=center},
+    r/lc/.style={anchor=west},
+    r/rc/.style={anchor=east},
+    r/cb/.style={anchor=south},
+    r/ct/.style={anchor=north},
+    r/lb/.style={anchor=south west},
+    r/lt/.style={anchor=north west},
+    r/rb/.style={anchor=south east},
+    r/rt/.style={anchor=north east},
+    at/.initial=current page.south west
+}
+
+\NewDocumentCommand{\Note}{O{} +m}{%
+    \pgfkeys{/Note/.cd,defaults,#1}%
+    \edef\WMNoteX{\pgfkeysvalueof{/Note/x}}%
+    \edef\WMNoteY{\pgfkeysvalueof{/Note/y}}%
+    \edef\WMNoteColor{\pgfkeysvalueof{/Note/color}}%
+    \edef\WMNoteWidth{\pgfkeysvalueof{/Note/width}}%
+    \WMNormalizeLength{\WMNoteX}{\WMNoteX}%
+    \WMNormalizeLength{\WMNoteY}{\WMNoteY}%
+    \WMNormalizeLength{\WMNoteWidth}{\WMNoteWidth}%
+    \def\WMNoteInnerXSep{8pt}%
+    \def\WMNoteLineWidth{0.9pt}%
+    \ifdefstring{\WMNoteX}{c}{\def\WMNoteX{0.5\paperwidth}}{}%
+    \ifdefstring{\WMNoteY}{c}{\def\WMNoteY{0.5\paperheight}}{}%
     \begin{tikzpicture}[remember picture,overlay]
-        \node[anchor=north east,xshift=-#1,yshift=-#2] at (current page.north east) {%
-            #3
+        \node[
+            name=wmnotebox,
+            anchor=\pgfkeysvalueof{/Note/anchor},
+            fill=\WMNoteColor!5!white,
+            draw=\WMNoteColor!70!black,
+            dash pattern=on 4pt off 3pt,
+            line width=\WMNoteLineWidth,
+            rounded corners=3pt,
+            inner xsep=\WMNoteInnerXSep,
+            inner ysep=6pt,
+            outer sep=0pt,
+            xshift=\WMNoteX,
+            yshift=\WMNoteY
+        ] at (\pgfkeysvalueof{/Note/at}) {%
+            \begin{minipage}[t]{\dimexpr
+                \WMNoteWidth
+                -\WMNoteInnerXSep
+                -\WMNoteInnerXSep
+                -\WMNoteLineWidth
+                \relax}
+                \vspace{0pt}%
+                \MyConfig
+                \raggedright
+                #2
+            \end{minipage}%
         };
-    \end{tikzpicture}
+        \ifwmframeGrid
+            \draw[blue!75!black,dashed,line width=0.8pt]
+                (wmnotebox.south west) rectangle (wmnotebox.north east);
+            \draw[blue!75!black,line width=1.2pt]
+                ([yshift=-3pt]wmnotebox.north) -- ([yshift=3pt]wmnotebox.north)
+                ([yshift=-3pt]wmnotebox.south) -- ([yshift=3pt]wmnotebox.south)
+                ([xshift=-3pt]wmnotebox.west) -- ([xshift=3pt]wmnotebox.west)
+                ([xshift=-3pt]wmnotebox.east) -- ([xshift=3pt]wmnotebox.east);
+            \fill[blue!75!black]
+                ([xshift=\WMNoteX,yshift=\WMNoteY]\pgfkeysvalueof{/Note/at})
+                circle[radius=2pt];
+        \fi
+    \end{tikzpicture}%
 }

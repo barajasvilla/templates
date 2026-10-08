@@ -16,36 +16,45 @@
 % ============================================
 \begin{document}
 
-\TitleFrame
+\TitleSlide
 
 \section{Introduction}
 \subsection{Motivation}
-\Frame[t,grid,render]{
-    \PlaceImage[
-        x=8cm,
+\Slide[r,g]{
+    \Image[
+        x=8,
         y=c,
         r=lc,
-        width=7.5cm
+        width=7.5
     ]{figures/Logo.pdf}
-    \PlaceText[
-        x=1cm,
-        y=7cm,
+    \Text[
+        x=1,
+        y=7,
         r=lt,
-        width=6cm
+        width=6
     ]{
-        \textbf{\large Title}
+        \textbf{\large High}
         \begin{itemize}
-            \item ...
+            \item Complex 
+            \item These measurements 
+            \item High-dimensional 
         \end{itemize}
     }
-    \PlaceText[
-        x=4cm,
-        y=2.5cm,
+    \Text[
+        x=4,
+        y=2.5,
         r=ct,
-        width=7cm
+        width=7
     ]{\centering
-        \textbf{Title 2 ...}
+        \textbf{How can we \citet{dokoumetzidis2010fractional}}
     }
+}
+
+\section{References}
+\Slide[t]{
+    \footnotesize
+    \bibliographystyle{elsarticle-num-names}
+    \bibliography{bibliografias}
 }
 
 \end{document}
