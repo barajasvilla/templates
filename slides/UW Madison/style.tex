@@ -37,6 +37,21 @@
 \setbeamertemplate{itemize item}{\raisebox{0ex}{\scalebox{1.2}{\textcolor{black}{\(\circ\)}}}}
 \setbeamertemplate{enumerate item}{\arabic{enumi}.}
 
+% Keep lists attached to preceding text unless a blank line starts a new paragraph.
+\newcommand{\WMListSpacing}{%
+    \setlength{\topsep}{0pt}%
+    \setlength{\partopsep}{5pt}%
+    \setlength{\parskip}{0pt}%
+    \setlength{\parsep}{0pt}%
+    \setlength{\itemsep}{1.8pt}%
+}
+\makeatletter
+\appto\@listi{\WMListSpacing}
+\appto\@listii{\WMListSpacing}
+\appto\@listiii{\WMListSpacing}
+\let\@listI\@listi
+\makeatother
+
 % A new section starts without inheriting the previous subsection title.
 \makeatletter
 \pretocmd{\beamer@section}{\gdef\subsecname{}}{}{}
@@ -92,10 +107,6 @@
 \newcommand{\MyConfig}{%
 \setlength{\parskip}{5pt}%
 \setlength{\parindent}{0cm}%
-\setlength{\topsep}{1.8pt}%
-\setlength{\partopsep}{0pt}%
-\setlength{\parsep}{0pt}%
-\setlength{\itemsep}{1.8pt}%
 \setlength{\abovedisplayskip}{9pt}%
 \setlength{\belowdisplayskip}{9pt}%
 \setlength{\abovedisplayshortskip}{6pt}%
@@ -365,12 +376,14 @@
 % Interpret bare numeric lengths as centimetres while preserving explicit
 % units, dimension expressions, and symbolic values such as `c`.
 \ExplSyntaxOn
+\regex_const:Nn \c__wm_numeric_length_regex
+  { \A (?: \+ | - )? (?: \d+ (?: \. \d* )? | \. \d+ ) \Z }
 \cs_new_protected:Npn \wm_normalize_length:nN #1#2
   {
     \tl_set:Nx \l_tmpa_tl {#1}
     \tl_trim_spaces:N \l_tmpa_tl
-    \regex_match:nVTF
-      { \A (?: \+ | - )? (?: \d+ (?: \. \d* )? | \. \d+ ) \Z }
+    \regex_match:NVTF
+      \c__wm_numeric_length_regex
       \l_tmpa_tl
       { \tl_put_right:Nn \l_tmpa_tl { cm } }
       { }
@@ -379,6 +392,15 @@
 \NewDocumentCommand{\WMNormalizeLength}{m m}
   { \wm_normalize_length:nN {#1} #2 }
 \ExplSyntaxOff
+
+% Shared image sizing; \Slide already handles the render/draft setting.
+\newcommand{\WMIncludeGraphic}[3]{%
+    \ifdefempty{#2}{%
+        \includegraphics[width=#1]{#3}%
+    }{%
+        \includegraphics[height=#2]{#3}%
+    }%
+}
 
 \pgfkeys{
     /Image/.is family,
@@ -436,19 +458,7 @@
             xshift=\WMImageX,
             yshift=\WMImageY
         ] at (\pgfkeysvalueof{/Image/at}) {%
-            \ifwmframeRender
-                \ifdefempty{\WMImageHeight}{%
-                    \includegraphics[draft=false,width=\WMImageWidth]{#2}%
-                }{%
-                    \includegraphics[draft=false,height=\WMImageHeight]{#2}%
-                }%
-            \else
-                \ifdefempty{\WMImageHeight}{%
-                    \includegraphics[width=\WMImageWidth]{#2}%
-                }{%
-                    \includegraphics[height=\WMImageHeight]{#2}%
-                }%
-            \fi
+            \WMIncludeGraphic{\WMImageWidth}{\WMImageHeight}{#2}%
         };
         \ifwmframeGrid
             \draw[red!75!black,line width=1.2pt]
@@ -458,6 +468,128 @@
                 ([xshift=-3pt]wmimagebox.east) -- ([xshift=3pt]wmimagebox.east);
             \fill[red!75!black]
                 ([xshift=\WMImageX,yshift=\WMImageY]\pgfkeysvalueof{/Image/at})
+                circle[radius=2pt];
+        \fi
+    \end{tikzpicture}%
+}
+
+\pgfkeys{
+    /Figure/.is family,
+    /Figure,
+    x/.initial=0cm,
+    y/.initial=0cm,
+    width/.initial=0.5\paperwidth,
+    height/.initial=,
+    anchor/.initial=center,
+    defaults/.style={
+        x=0cm,
+        y=0cm,
+        width=0.5\paperwidth,
+        height=,
+        anchor=center,
+        at=current page.south west
+    },
+    r/.is choice,
+    r/cc/.style={anchor=center},
+    r/lc/.style={anchor=west},
+    r/rc/.style={anchor=east},
+    r/cb/.style={anchor=south},
+    r/ct/.style={anchor=north},
+    r/lb/.style={anchor=south west},
+    r/lt/.style={anchor=north west},
+    r/rb/.style={anchor=south east},
+    r/rt/.style={anchor=north east},
+    at/.initial=current page.south west
+}
+
+\newsavebox{\WMFigureImageBox}
+
+% A leading size command applies to both the caption text and its label.
+\ExplSyntaxOn
+\tl_new:N \l__wm_figure_caption_tl
+\NewDocumentCommand{\WMFigureCaption}{+m}
+  {
+    \group_begin:
+      \tl_set:Nn \l__wm_figure_caption_tl {#1}
+      \tl_trim_spaces:N \l__wm_figure_caption_tl
+      \clist_map_inline:nn
+        {\tiny,\scriptsize,\footnotesize,\small,\normalsize,
+         \large,\Large,\LARGE,\huge,\Huge}
+        {
+          \exp_args:NV \tl_if_head_eq_meaning:nNT
+            \l__wm_figure_caption_tl ##1
+            {
+              \setbeamerfont{caption}{size=##1}
+              \setbeamerfont{caption~name}{size=##1}
+              \clist_map_break:
+            }
+        }
+      \exp_args:NV \caption \l__wm_figure_caption_tl
+      \exp_args:Nx \label {fig:\thefigure}
+    \group_end:
+  }
+\ExplSyntaxOff
+
+\NewDocumentCommand{\Figure}{O{} m +m}{%
+    \pgfkeys{/Figure/.cd,defaults,#1}%
+    \edef\WMFigureHeight{\pgfkeysvalueof{/Figure/height}}%
+    \edef\WMFigureWidth{\pgfkeysvalueof{/Figure/width}}%
+    \edef\WMFigureX{\pgfkeysvalueof{/Figure/x}}%
+    \edef\WMFigureY{\pgfkeysvalueof{/Figure/y}}%
+    \WMNormalizeLength{\WMFigureHeight}{\WMFigureHeight}%
+    \WMNormalizeLength{\WMFigureWidth}{\WMFigureWidth}%
+    \WMNormalizeLength{\WMFigureX}{\WMFigureX}%
+    \WMNormalizeLength{\WMFigureY}{\WMFigureY}%
+    \ifdefstring{\WMFigureX}{c}{\def\WMFigureX{0.5\paperwidth}}{}%
+    \ifdefstring{\WMFigureY}{c}{\def\WMFigureY{0.5\paperheight}}{}%
+    \sbox{\WMFigureImageBox}{%
+        \WMIncludeGraphic{\WMFigureWidth}{\WMFigureHeight}{#2}%
+    }%
+    \ifwmframeGrid
+        \tikzset{
+            wm figure block debug/.style={draw=red!75!black,dashed,line width=0.8pt}
+        }%
+    \else
+        \tikzset{wm figure block debug/.style={}}%
+    \fi
+    \begin{tikzpicture}[remember picture,overlay]
+        \node[
+            name=wmfigureimagebox,
+            anchor=\pgfkeysvalueof{/Figure/anchor},
+            inner sep=0pt,
+            outer sep=0pt,
+            minimum width=\wd\WMFigureImageBox,
+            minimum height=\dimexpr\ht\WMFigureImageBox+\dp\WMFigureImageBox\relax,
+            xshift=\WMFigureX,
+            yshift=\WMFigureY
+        ] at (\pgfkeysvalueof{/Figure/at}) {};
+        % Position by the image rectangle; typeset image and caption together.
+        \node[
+            name=wmfigureblock,
+            wm figure block debug,
+            anchor=north west,
+            inner sep=0pt,
+            outer sep=0pt
+        ] at (wmfigureimagebox.north west) {%
+            \begin{minipage}{\wd\WMFigureImageBox}
+                \setlength{\parskip}{0pt}%
+                \setlength{\abovecaptionskip}{5pt}%
+                \setlength{\belowcaptionskip}{0pt}%
+                \begin{figure}
+                    \centering
+                    \usebox{\WMFigureImageBox}%
+                    \WMFigureCaption{#3}%
+                \end{figure}%
+            \end{minipage}%
+        };
+        \ifwmframeGrid
+            \draw[red!75!black,line width=1.2pt]
+                ([yshift=-3pt]wmfigureblock.north) -- ([yshift=3pt]wmfigureblock.north)
+                ([yshift=-3pt]wmfigureblock.south) -- ([yshift=3pt]wmfigureblock.south)
+                ([xshift=-3pt]wmfigureblock.west) -- ([xshift=3pt]wmfigureblock.west)
+                ([xshift=-3pt]wmfigureblock.east) -- ([xshift=3pt]wmfigureblock.east);
+            \fill[red!75!black]
+                ([xshift=\WMFigureX,yshift=\WMFigureY]\pgfkeysvalueof{/Figure/at})
                 circle[radius=2pt];
         \fi
     \end{tikzpicture}%
